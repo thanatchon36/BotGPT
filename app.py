@@ -3,13 +3,19 @@ from streamlit_feedback import streamlit_feedback
 import time
 import datetime
 import pandas as pd
+from PIL import Image
+
+bot_image = Image.open('fav.png')
+user_image = Image.open('fav_2.png')
+
+st.set_page_config(layout="wide", page_title = 'BotGPT', page_icon = 'fav.png')
 
 with st.sidebar:
     clear_session_click = st.button("Clear session")
     if clear_session_click:
         st.session_state.messages = []
 
-with st.chat_message("Assistant"):
+with st.chat_message("assistant", avatar = bot_image):
     # Create an empty message placeholder
     mp = st.empty()
     # Create a container for the message
@@ -29,19 +35,24 @@ if "messages" not in st.session_state:
 
 # Display chat messages from history on app rerun
 for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
+    if message["role"] == "assistant":
+        with st.chat_message(message["role"], avatar = bot_image):
+            st.markdown(message["content"])
+    else:
+        with st.chat_message(message["role"], avatar = user_image):
+            st.markdown(message["content"])
+
 
 # Check if there's a user input prompt
 if prompt := st.chat_input(placeholder="Which has a better follower growth rate in 2023, LinkedIn or Twitter?"):
     # Display user input in the chat
-    st.chat_message("user").write(prompt)
+    st.chat_message("user", avatar = user_image).write(prompt)
 
     # Add user message to the chat history
     st.session_state.messages.append({"role": "user", "content": prompt})
 
     # Create a chat message for the assistant
-    with st.chat_message("assistant"):
+    with st.chat_message("assistant", avatar = bot_image):
         full_response = ""  # Initialize an empty string to store the full response
         message_placeholder = st.empty()  # Create an empty placeholder for displaying messages
         response = """
