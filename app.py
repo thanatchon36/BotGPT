@@ -9,10 +9,13 @@ import csv
 import streamlit_authenticator as stauth
 import yaml
 from yaml.loader import SafeLoader
+import clipboard
 
 def reset(df):
     cols = df.columns
     return df.reset_index()[cols]
+
+show_chat_history_no = 5
 
 st.set_page_config(page_title = 'BotGPT', page_icon = 'fav.png')
 
@@ -57,6 +60,10 @@ if st.session_state["authentication_status"]:
         csv_file = f"data/{st.session_state.username}.csv"
         file_exists = os.path.isfile(csv_file)
         if file_exists:
+            # Init State Sessioin
+            if 'page' not in st.session_state:
+                st.session_state['page'] = 1
+                
             with st.expander("Chat History"):
                 hist_df = pd.read_csv(f'data/{st.session_state.username}.csv')
                 full_hist_df = hist_df.copy()
@@ -64,7 +71,16 @@ if st.session_state["authentication_status"]:
                 hist_df = hist_df.groupby('chat_id').first().reset_index()
                 hist_df = reset(hist_df.sort_values(by = 'turn_id', ascending = False))
 
-                for index, row in hist_df.iterrows():
+                hist_df['page'] = hist_df.index
+                hist_df['page'] = hist_df['page'] / show_chat_history_no
+                hist_df['page'] = hist_df['page'].astype(int)
+                hist_df['page'] = hist_df['page'] + 1
+
+                st.session_state['max_page'] = hist_df['page'].max()
+
+                filter_hist_df_2 = reset(hist_df[hist_df['page'] == st.session_state['page']])
+
+                for index, row in filter_hist_df_2.iterrows():
                     chat_button_click = st.button(f"{row['generative_text'][:20]}" + '...', key = row['chat_id'])
                     if chat_button_click:
                         st.session_state.messages = []
@@ -74,7 +90,12 @@ if st.session_state["authentication_status"]:
                         fil_hist_df = reset(fil_hist_df[fil_hist_df['chat_id'] == row['chat_id']])
                         for index_2, row_2 in fil_hist_df.iterrows(): 
                             st.session_state.messages.append({"role": "user", "content": row_2['user_text']})
-                            st.session_state.messages.append({"role": "assistant", "content": row_2['generative_text']})
+                            st.session_state.messages.append({"role": "assistant", "content": row_2['generative_text'], "chat_id": row_2['chat_id'], "turn_id":  row_2['turn_id']})
+
+                if 'max_page' not in st.session_state:
+                    st.session_state['max_page'] = 10
+                if int(st.session_state['max_page']) > 1:
+                    page = st.slider('Page No:', 1, int(st.session_state['max_page']), key = 'page')
 
         with st.expander("Change Password"):
             try:
@@ -113,10 +134,16 @@ if st.session_state["authentication_status"]:
     for message in st.session_state.messages:
         if message["role"] == "assistant":
             with st.chat_message(message["role"], avatar = bot_image):
-                st.markdown(message["content"])
+                st.code(message["content"], language="plaintext")
+                # feedback = streamlit_feedback(
+                #     feedback_type="faces",
+                #     optional_text_label="[Optional] Please provide an explanation",
+                #     key = message["turn_id"]
+                # )
         else:
             with st.chat_message(message["role"], avatar = user_image):
                 st.markdown(message["content"])
+    
 
 
     # Check if there's a user input prompt
@@ -132,7 +159,7 @@ if st.session_state["authentication_status"]:
             full_response = ""  # Initialize an empty string to store the full response
             message_placeholder = st.empty()  # Create an empty placeholder for displaying messages
             response = """
-    text from model
+    ทดสอบภาษาไทย
     """
             # Simulate streaming the response with a slight delay
             for chunk in response.split():
@@ -156,7 +183,7 @@ if st.session_state["authentication_status"]:
                 writer.writerow([st.session_state.username, st.session_state.chat_id, st.session_state.turn_id, prompt, full_response])
 
             # Add the assistant's response to the chat history
-            st.session_state.messages.append({"role": "assistant", "content": full_response})
+            st.session_state.messages.append({"role": "assistant", "content": full_response, "chat_id": st.session_state.chat_id, "turn_id": st.session_state.turn_id})
 
             st.rerun()
 
