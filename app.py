@@ -54,6 +54,10 @@ authenticator = stauth.Authenticate(
 authenticator.login('BotGPT Login', 'main')
 
 if st.session_state["authentication_status"]:
+    
+    if "chat_id" not in st.session_state:
+        now = str(datetime.datetime.now())
+        st.session_state.chat_id  = now
 
     bot_image = Image.open('fav.png')
     user_image = Image.open('fav_2.png')
@@ -90,16 +94,17 @@ if st.session_state["authentication_status"]:
                 filter_hist_df_2 = reset(hist_df[hist_df['page'] == st.session_state['page']])
 
                 for index, row in filter_hist_df_2.iterrows():
-                    chat_button_click = st.button(f"{row['generative_text'][:20]}" + '...', key = row['chat_id'])
-                    if chat_button_click:
-                        st.session_state.messages = []
-                        st.session_state.chat_id = row['chat_id']
-                        st.session_state.turn_id = row['turn_id']
-                        fil_hist_df = full_hist_df.copy()
-                        fil_hist_df = reset(fil_hist_df[fil_hist_df['chat_id'] == row['chat_id']])
-                        for index_2, row_2 in fil_hist_df.iterrows(): 
-                            st.session_state.messages.append({"role": "user", "content": row_2['user_text']})
-                            st.session_state.messages.append({"role": "assistant", "content": row_2['generative_text'], "chat_id": row_2['chat_id'], "turn_id":  row_2['turn_id']})
+                    if st.session_state.chat_id != row['chat_id']:
+                        chat_button_click = st.button(f"{row['generative_text'][:20]}" + '...', key = row['chat_id'])
+                        if chat_button_click:
+                            st.session_state.messages = []
+                            st.session_state.chat_id = row['chat_id']
+                            st.session_state.turn_id = row['turn_id']
+                            fil_hist_df = full_hist_df.copy()
+                            fil_hist_df = reset(fil_hist_df[fil_hist_df['chat_id'] == row['chat_id']])
+                            for index_2, row_2 in fil_hist_df.iterrows(): 
+                                st.session_state.messages.append({"role": "user", "content": row_2['user_text']})
+                                st.session_state.messages.append({"role": "assistant", "content": row_2['generative_text'], "chat_id": row_2['chat_id'], "turn_id":  row_2['turn_id']})
 
                 if 'max_page' not in st.session_state:
                     st.session_state['max_page'] = 10
@@ -127,9 +132,7 @@ if st.session_state["authentication_status"]:
 
         authenticator.logout(f"Logout ({st.session_state['username']})", 'main', key='unique_key')
 
-    if "chat_id" not in st.session_state:
-        now = str(datetime.datetime.now())
-        st.session_state.chat_id  = now
+
 
     with st.chat_message("assistant", avatar = bot_image):
         # Create an empty message placeholder
