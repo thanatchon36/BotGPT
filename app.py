@@ -9,13 +9,22 @@ import csv
 import streamlit_authenticator as stauth
 import yaml
 from yaml.loader import SafeLoader
-import clipboard
+import requests
+
+def get_response(prompt):
+    port = 5101
+    api_route = 'botgpt_query'
+    post_params = {'prompt': f"{prompt}",
+                }
+    res = requests.post('http://localhost:{}/{}'.format(port, api_route), json = post_params)
+    return res.json()['response']
 
 def reset(df):
     cols = df.columns
     return df.reset_index()[cols]
 
 show_chat_history_no = 5
+admin_list = ['thanatcc', 'da']
 
 st.set_page_config(page_title = 'BotGPT', page_icon = 'fav.png')
 
@@ -106,6 +115,16 @@ if st.session_state["authentication_status"]:
             except Exception as e:
                 st.error(e)
 
+        if st.session_state.username in admin_list:
+            with st.expander("Register User"):
+                try:
+                    if authenticator.register_user('Register user', preauthorization=False):
+                        with open('config.yaml', 'w') as file:
+                            yaml.dump(config, file, default_flow_style=False)
+                        st.success('User registered successfully')
+                except Exception as e:
+                    st.error(e)
+
         authenticator.logout(f"Logout ({st.session_state['username']})", 'main', key='unique_key')
 
     if "chat_id" not in st.session_state:
@@ -158,16 +177,19 @@ if st.session_state["authentication_status"]:
         with st.chat_message("assistant", avatar = bot_image):
             full_response = ""  # Initialize an empty string to store the full response
             message_placeholder = st.empty()  # Create an empty placeholder for displaying messages
-            response = """
-    ทดสอบภาษาไทย
-    """
-            # Simulate streaming the response with a slight delay
-            for chunk in response.split():
-                full_response += chunk + " "
-                time.sleep(0.05)  # Add a small delay to simulate typing
-                # Add a blinking cursor to simulate typing
-                message_placeholder.markdown(full_response + "▌")
-                message_placeholder.markdown(full_response)
+
+            with st.spinner('Thinking...'):
+                # response = """
+                # ทดสอบภาษาไทย
+                # """
+                response = get_response(prompt)
+                # Simulate streaming the response with a slight delay
+                for chunk in response.split():
+                    full_response += chunk + " "
+                    time.sleep(0.05)  # Add a small delay to simulate typing
+                    # Add a blinking cursor to simulate typing
+                    message_placeholder.markdown(full_response + "▌")
+                    message_placeholder.markdown(full_response)
 
             # csv_file = f"data/{st.session_state['username']}.csv"
             csv_file = f"data/{st.session_state.username}.csv"
@@ -229,3 +251,4 @@ if st.session_state["authentication_status"]:
                     writer.writerow([st.session_state.username, st.session_state.chat_id, st.session_state.turn_id, score, text])
         except:
             pass
+
