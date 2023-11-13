@@ -153,7 +153,8 @@ if st.session_state["authentication_status"]:
     for message in st.session_state.messages:
         if message["role"] == "assistant":
             with st.chat_message(message["role"], avatar = bot_image):
-                st.code(message["content"], language="plaintext")
+                st.markdown(message["content"])
+                # st.code(message["content"], language="plaintext")
                 # feedback = streamlit_feedback(
                 #     feedback_type="faces",
                 #     optional_text_label="[Optional] Please provide an explanation",
