@@ -60,6 +60,7 @@ if st.session_state["authentication_status"]:
         st.session_state.chat_id  = now
 
     bot_image = Image.open('fav.png')
+    bot_image_2 = Image.open('fav_3.png')
     user_image = Image.open('fav_2.png')
 
     with st.sidebar:
@@ -134,7 +135,7 @@ if st.session_state["authentication_status"]:
 
 
 
-    with st.chat_message("assistant", avatar = bot_image):
+    with st.chat_message("assistant", avatar = bot_image_2):
         # Create an empty message placeholder
         mp = st.empty()
         # Create a container for the message
@@ -155,7 +156,7 @@ if st.session_state["authentication_status"]:
     # Display chat messages from history on app rerun
     for message in st.session_state.messages:
         if message["role"] == "assistant":
-            with st.chat_message(message["role"], avatar = bot_image):
+            with st.chat_message(message["role"], avatar = bot_image_2):
                 st.markdown(message["content"])
                 # st.code(message["content"], language="plaintext")
                 # feedback = streamlit_feedback(
@@ -178,7 +179,7 @@ if st.session_state["authentication_status"]:
         st.session_state.messages.append({"role": "user", "content": prompt})
 
         # Create a chat message for the assistant
-        with st.chat_message("assistant", avatar = bot_image):
+        with st.chat_message("assistant", avatar = bot_image_2):
             full_response = ""  # Initialize an empty string to store the full response
             message_placeholder = st.empty()  # Create an empty placeholder for displaying messages
 
