@@ -184,16 +184,15 @@ if st.session_state["authentication_status"]:
             message_placeholder = st.empty()  # Create an empty placeholder for displaying messages
 
             with st.spinner('Thinking...'):
-                # response = """
-                # ทดสอบภาษาไทย
-                # """
                 response = get_response(prompt)
+                full_response = ""
                 # Simulate streaming the response with a slight delay
-                for chunk in response.split():
-                    full_response += chunk + " "
-                    time.sleep(0.05)  # Add a small delay to simulate typing
+                for chunk in response.split("\n"):
+                    # Add a small delay to simulate typing
+                    time.sleep(0.05)
                     # Add a blinking cursor to simulate typing
                     message_placeholder.markdown(full_response + "▌")
+                    full_response += chunk + "  \n"  # Add double space escape sequence for line break
                     message_placeholder.markdown(full_response)
 
             # csv_file = f"data/{st.session_state['username']}.csv"
