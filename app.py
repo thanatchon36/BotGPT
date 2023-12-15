@@ -81,7 +81,7 @@ if st.session_state["authentication_status"]:
 
         csv_file = f"data/{st.session_state.username}.csv"
         file_exists = os.path.isfile(csv_file)
-        if file_exists:
+        if file_exists and len(pd.read_csv(csv_file) > 0):
             # Init State Sessioin
             if 'page' not in st.session_state:
                 st.session_state['page'] = 1
