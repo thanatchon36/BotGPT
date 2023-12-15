@@ -82,13 +82,13 @@ if st.session_state["authentication_status"]:
         csv_file = f"data/{st.session_state.username}.csv"
         file_exists = os.path.isfile(csv_file)
         if file_exists:
-            if len(pd.read_csv(csv_file) > 0):
+            if len(pd.read_csv(csv_file, sep = ',')) > 0:
                 # Init State Sessioin
                 if 'page' not in st.session_state:
                     st.session_state['page'] = 1
                     
                 with st.expander("Chat History"):
-                    hist_df = pd.read_csv(f'data/{st.session_state.username}.csv')
+                    hist_df = pd.read_csv(f'data/{st.session_state.username}.csv', sep = ',')
                     full_hist_df = hist_df.copy()
                     hist_df = reset(hist_df.sort_values(by = 'turn_id', ascending = False))
                     hist_df = hist_df.groupby('chat_id').first().reset_index()
