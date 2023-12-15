@@ -210,7 +210,7 @@ if st.session_state["authentication_status"]:
                 with open(csv_file, mode='a', newline='') as file:
                     writer = csv.writer(file)
                     writer.writerow(['username','chat_id','turn_id','user_text','generative_text'])
-            with open(csv_file, mode='a', newline='') as file:
+            with open(csv_file, mode='a', newline='', encoding = 'utf-8') as file:
                 writer = csv.writer(file)
                 current_time = str(datetime.datetime.now())
                 st.session_state.turn_id = current_time
