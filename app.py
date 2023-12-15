@@ -81,44 +81,45 @@ if st.session_state["authentication_status"]:
 
         csv_file = f"data/{st.session_state.username}.csv"
         file_exists = os.path.isfile(csv_file)
-        if file_exists and len(pd.read_csv(csv_file) > 0):
-            # Init State Sessioin
-            if 'page' not in st.session_state:
-                st.session_state['page'] = 1
-                
-            with st.expander("Chat History"):
-                hist_df = pd.read_csv(f'data/{st.session_state.username}.csv')
-                full_hist_df = hist_df.copy()
-                hist_df = reset(hist_df.sort_values(by = 'turn_id', ascending = False))
-                hist_df = hist_df.groupby('chat_id').first().reset_index()
-                hist_df = reset(hist_df.sort_values(by = 'turn_id', ascending = False))
+        if file_exists:
+            if len(pd.read_csv(csv_file) > 0):
+                # Init State Sessioin
+                if 'page' not in st.session_state:
+                    st.session_state['page'] = 1
+                    
+                with st.expander("Chat History"):
+                    hist_df = pd.read_csv(f'data/{st.session_state.username}.csv')
+                    full_hist_df = hist_df.copy()
+                    hist_df = reset(hist_df.sort_values(by = 'turn_id', ascending = False))
+                    hist_df = hist_df.groupby('chat_id').first().reset_index()
+                    hist_df = reset(hist_df.sort_values(by = 'turn_id', ascending = False))
 
-                hist_df['page'] = hist_df.index
-                hist_df['page'] = hist_df['page'] / show_chat_history_no
-                hist_df['page'] = hist_df['page'].astype(int)
-                hist_df['page'] = hist_df['page'] + 1
+                    hist_df['page'] = hist_df.index
+                    hist_df['page'] = hist_df['page'] / show_chat_history_no
+                    hist_df['page'] = hist_df['page'].astype(int)
+                    hist_df['page'] = hist_df['page'] + 1
 
-                st.session_state['max_page'] = hist_df['page'].max()
+                    st.session_state['max_page'] = hist_df['page'].max()
 
-                filter_hist_df_2 = reset(hist_df[hist_df['page'] == st.session_state['page']])
+                    filter_hist_df_2 = reset(hist_df[hist_df['page'] == st.session_state['page']])
 
-                for index, row in filter_hist_df_2.iterrows():
-                    if st.session_state.chat_id != row['chat_id']:
-                        chat_button_click = st.button(f"{row['generative_text'][:20]}" + '...', key = row['chat_id'])
-                        if chat_button_click:
-                            st.session_state.messages = []
-                            st.session_state.chat_id = row['chat_id']
-                            st.session_state.turn_id = row['turn_id']
-                            fil_hist_df = full_hist_df.copy()
-                            fil_hist_df = reset(fil_hist_df[fil_hist_df['chat_id'] == row['chat_id']])
-                            for index_2, row_2 in fil_hist_df.iterrows(): 
-                                st.session_state.messages.append({"role": "user", "content": row_2['user_text']})
-                                st.session_state.messages.append({"role": "assistant", "content": row_2['generative_text'], "chat_id": row_2['chat_id'], "turn_id":  row_2['turn_id']})
+                    for index, row in filter_hist_df_2.iterrows():
+                        if st.session_state.chat_id != row['chat_id']:
+                            chat_button_click = st.button(f"{row['generative_text'][:20]}" + '...', key = row['chat_id'])
+                            if chat_button_click:
+                                st.session_state.messages = []
+                                st.session_state.chat_id = row['chat_id']
+                                st.session_state.turn_id = row['turn_id']
+                                fil_hist_df = full_hist_df.copy()
+                                fil_hist_df = reset(fil_hist_df[fil_hist_df['chat_id'] == row['chat_id']])
+                                for index_2, row_2 in fil_hist_df.iterrows(): 
+                                    st.session_state.messages.append({"role": "user", "content": row_2['user_text']})
+                                    st.session_state.messages.append({"role": "assistant", "content": row_2['generative_text'], "chat_id": row_2['chat_id'], "turn_id":  row_2['turn_id']})
 
-                if 'max_page' not in st.session_state:
-                    st.session_state['max_page'] = 10
-                if int(st.session_state['max_page']) > 1:
-                    page = st.slider('Page No:', 1, int(st.session_state['max_page']), key = 'page')
+                    if 'max_page' not in st.session_state:
+                        st.session_state['max_page'] = 10
+                    if int(st.session_state['max_page']) > 1:
+                        page = st.slider('Page No:', 1, int(st.session_state['max_page']), key = 'page')
 
         with st.expander("Change Password"):
             try:
