@@ -19,6 +19,14 @@ def get_response(prompt):
     res = requests.post('http://localhost:{}/{}'.format(port, api_route), json = post_params)
     return res.json()['response']
 
+def get_response_2(prompt):
+    port = 5102
+    api_route = 'botgpt_query'
+    post_params = {'prompt': f"{prompt}",
+                }
+    res = requests.post('http://localhost:{}/{}'.format(port, api_route), json = post_params)
+    return res.json()['response']
+
 def reset(df):
     cols = df.columns
     return df.reset_index()[cols]
