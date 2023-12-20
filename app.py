@@ -12,19 +12,17 @@ from yaml.loader import SafeLoader
 import requests
 
 def get_response(prompt):
-    port = 5101
     api_route = 'botgpt_query'
     post_params = {'prompt': f"{prompt}",
                 }
-    res = requests.post('http://localhost:{}/{}'.format(port, api_route), json = post_params)
+    res = requests.post(f'https://pc140032646.bot.or.th/{api_route}', json = post_params, verify="/DA_WORKSPACE/GLOBAL_WS/ssl_cer/WS2B/pc140032646.bot.or.th.pem")
     return res.json()['response']
 
 def get_response_2(prompt):
-    port = 5102
     api_route = 'botgpt_query'
     post_params = {'prompt': f"{prompt}",
                 }
-    res = requests.post('http://localhost:{}/{}'.format(port, api_route), json = post_params)
+    res = requests.post(f'https://pc140032645.bot.or.th/{api_route}', json = post_params, verify="/DA_WORKSPACE/GLOBAL_WS/ssl_cer/WS2A/pc140032645.bot.or.th.pem")
     return res.json()['response']
 
 def reset(df):
@@ -79,6 +77,11 @@ if st.session_state["authentication_status"]:
             now = str(datetime.datetime.now())
             st.session_state.chat_id  = now
 
+        context_radio = st.radio(
+            "Context:",
+            ["ข้อมูลประกาศ", "Datacube"],
+        )
+        
         csv_file = f"data/{st.session_state.username}.csv"
         file_exists = os.path.isfile(csv_file)
         if file_exists:
@@ -193,7 +196,11 @@ if st.session_state["authentication_status"]:
             message_placeholder = st.empty()  # Create an empty placeholder for displaying messages
 
             with st.spinner('Thinking...'):
-                response = get_response(prompt)
+                if context_radio == 'ข้อมูลประกาศ':
+                    response = get_response(prompt)
+                elif context_radio == 'Datacube':
+                    response = get_response_2(prompt)
+
                 full_response = ""
                 # Simulate streaming the response with a slight delay
                 for chunk in response.split("\n"):
