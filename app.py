@@ -108,7 +108,7 @@ if st.session_state["authentication_status"]:
 
                     for index, row in filter_hist_df_2.iterrows():
                         if st.session_state.chat_id != row['chat_id']:
-                            chat_button_click = st.button(f"{row['user_text'][:20]}" + '...', key = row['chat_id'])
+                            chat_button_click = st.button(f"{row['user_text'][:30]}" + '...', key = row['chat_id'])
                             if chat_button_click:
                                 st.session_state.messages = []
                                 st.session_state.chat_id = row['chat_id']
