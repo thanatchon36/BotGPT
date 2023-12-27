@@ -32,7 +32,7 @@ def reset(df):
 show_chat_history_no = 5
 admin_list = ['thanatcc', 'da']
 
-st.set_page_config(page_title = 'BotGPT', page_icon = 'fav.png')
+st.set_page_config(page_title = 'BotGPT', page_icon = 'fav.png', layout="wide")
 
 st.markdown("""
     <style>
