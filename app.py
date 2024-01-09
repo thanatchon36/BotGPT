@@ -11,19 +11,21 @@ import yaml
 from yaml.loader import SafeLoader
 import requests
 
-def get_response(prompt):
+def get_response(prompt, context = []):
     api_route = 'botgpt_query'
     post_params = {'prompt': f"{prompt}",
+                   'context': context,
                 }
     res = requests.post(f'https://pc140032646.bot.or.th/{api_route}', json = post_params, verify="/DA_WORKSPACE/GLOBAL_WS/ssl_cer/WS2B/pc140032646.bot.or.th.pem")
-    return res.json()['response']
+    return {'response': res.json()['response'], 'raw_input': res.json()['raw_input'], 'raw_output': res.json()['raw_output'], 'engine': res.json()['engine']}
 
-def get_response_2(prompt):
+def get_response_2(prompt, context = []):
     api_route = 'botgpt_query'
     post_params = {'prompt': f"{prompt}",
+                   'context': context,
                 }
     res = requests.post(f'https://pc140032645.bot.or.th/{api_route}', json = post_params, verify="/DA_WORKSPACE/GLOBAL_WS/ssl_cer/WS2A/pc140032645.bot.or.th.pem")
-    return res.json()['response']
+    return {'response': res.json()['response'], 'raw_input': res.json()['raw_input'], 'raw_output': res.json()['raw_output'], 'engine': res.json()['engine']}
 
 def reset(df):
     cols = df.columns
@@ -74,6 +76,7 @@ if st.session_state["authentication_status"]:
         clear_session_click = st.button("New Chat")
         if clear_session_click:
             st.session_state.messages = []
+            st.session_state.context = []
             now = str(datetime.datetime.now())
             st.session_state.chat_id  = now
 
@@ -111,6 +114,7 @@ if st.session_state["authentication_status"]:
                             chat_button_click = st.button(f"{row['user_text'][:30]}" + '...', key = row['chat_id'])
                             if chat_button_click:
                                 st.session_state.messages = []
+                                st.session_state.context = []
                                 st.session_state.chat_id = row['chat_id']
                                 st.session_state.turn_id = row['turn_id']
                                 fil_hist_df = full_hist_df.copy()
@@ -118,6 +122,9 @@ if st.session_state["authentication_status"]:
                                 for index_2, row_2 in fil_hist_df.iterrows(): 
                                     st.session_state.messages.append({"role": "user", "content": row_2['user_text']})
                                     st.session_state.messages.append({"role": "assistant", "content": row_2['generative_text'], "chat_id": row_2['chat_id'], "turn_id":  row_2['turn_id']})
+
+                                    st.session_state.context.append({"role": "user", "content": row_2['raw_input']})
+                                    st.session_state.context.append({"role": "system", "content": row_2['raw_output']})
 
                     if 'max_page' not in st.session_state:
                         st.session_state['max_page'] = 10
@@ -164,18 +171,14 @@ if st.session_state["authentication_status"]:
     # Initialize chat history if it doesn't exist
     if "messages" not in st.session_state:
         st.session_state.messages = []
+    if "context" not in st.session_state:
+        st.session_state.context = []
 
     # Display chat messages from history on app rerun
     for message in st.session_state.messages:
         if message["role"] == "assistant":
             with st.chat_message(message["role"], avatar = bot_image_2):
                 st.markdown(message["content"])
-                # st.code(message["content"], language="plaintext")
-                # feedback = streamlit_feedback(
-                #     feedback_type="faces",
-                #     optional_text_label="[Optional] Please provide an explanation",
-                #     key = message["turn_id"]
-                # )
         else:
             with st.chat_message(message["role"], avatar = user_image):
                 st.markdown(message["content"])
@@ -194,12 +197,21 @@ if st.session_state["authentication_status"]:
         with st.chat_message("assistant", avatar = bot_image_2):
             full_response = ""  # Initialize an empty string to store the full response
             message_placeholder = st.empty()  # Create an empty placeholder for displaying messages
-
+ 
             with st.spinner('Thinking...'):
                 if context_radio == 'ข้อมูลประกาศ':
-                    response = get_response(prompt)
+                    response_dict = get_response(prompt, context = st.session_state.context)
+                    response = response_dict['response']
+                    raw_input = response_dict['raw_input']
+                    raw_output = response_dict['raw_output']
+                    engine = response_dict['engine']
+
                 elif context_radio == 'Datacube':
-                    response = get_response_2(prompt)
+                    response_dict = get_response_2(prompt, context = st.session_state.context)
+                    response = response_dict['response']
+                    raw_input = response_dict['raw_input']
+                    raw_output = response_dict['raw_output']
+                    engine = response_dict['engine']
 
                 full_response = ""
                 # Simulate streaming the response with a slight delay
@@ -217,15 +229,18 @@ if st.session_state["authentication_status"]:
             if not file_exists:
                 with open(csv_file, mode='a', newline='') as file:
                     writer = csv.writer(file)
-                    writer.writerow(['username','chat_id','turn_id','user_text','generative_text'])
+                    writer.writerow(['username','chat_id','turn_id','user_text','generative_text','raw_input','raw_output','engine'])
             with open(csv_file, mode='a', newline='', encoding = 'utf-8') as file:
                 writer = csv.writer(file)
                 current_time = str(datetime.datetime.now())
                 st.session_state.turn_id = current_time
-                writer.writerow([st.session_state.username, st.session_state.chat_id, st.session_state.turn_id, prompt, full_response])
+                writer.writerow([st.session_state.username, st.session_state.chat_id, st.session_state.turn_id, prompt, full_response, raw_input, raw_output, engine])
 
             # Add the assistant's response to the chat history
             st.session_state.messages.append({"role": "assistant", "content": full_response, "chat_id": st.session_state.chat_id, "turn_id": st.session_state.turn_id})
+
+            st.session_state.context.append({"role": "user", "content": raw_input})
+            st.session_state.context.append({"role": "system", "content": raw_output})
 
             st.rerun()
 
