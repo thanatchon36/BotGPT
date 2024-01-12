@@ -27,6 +27,9 @@ def get_response_2(prompt, context = []):
     res = requests.post(f'https://pc140032645.bot.or.th/{api_route}', json = post_params, verify="/DA_WORKSPACE/GLOBAL_WS/ssl_cer/WS2A/pc140032645.bot.or.th.pem")
     return {'response': res.json()['response'], 'raw_input': res.json()['raw_input'], 'raw_output': res.json()['raw_output'], 'engine': res.json()['engine']}
 
+def get_response_dev(prompt, context = []):
+    return {'response': 'response', 'raw_input': 'raw_input', 'raw_output': 'raw_output', 'engine': 'engine'}
+
 def reset(df):
     cols = df.columns
     return df.reset_index()[cols]
@@ -179,12 +182,41 @@ if st.session_state["authentication_status"]:
         if message["role"] == "assistant":
             with st.chat_message(message["role"], avatar = bot_image_2):
                 st.markdown(message["content"])
+                col1, col2, col3 = st.columns(3)
+                with col3:
+                    if context_radio == 'ข้อมูลประกาศ':
+                        feedback_options = ["...", 
+                        "ประกาศที่เลือกมาไม่ตรงคำถาม",
+                        "ประกาศที่เลือกมาตรงคำถามแค่บางส่วน แต่ไม่สามารถตอบคำถามได้ทั้งหมด",
+                        "ประกาศที่เลือกมาตรงคำถามแต่คำตอบไม่ครบถ้วน",
+                        "ประกาศที่เลือกมาตรงคำถามแต่คำตอบให้ข้อมูลที่ผิด",
+                        "ตอบคำถามและเลือกประกาศได้ถูกต้องและครบถ้วน",
+                        ]
+                    elif context_radio == 'Datacube':
+                        feedback_options = ["...", 
+                        "ตัวแปรที่เลือกมาไม่ตรงคำถาม",
+                        "ตัวแปรที่เลือกมาตรงคำถามแค่บางส่วน แต่ไม่สามารถตอบคำถามได้ทั้งหมด",
+                        "ตัวแปรที่เลือกมาตรงคำถามแต่คำตอบ (SQL) ดึงข้อมูลไม่ครบถ้วน",
+                        "ตัวแปรที่เลือกมาตรงคำถามแต่คำตอบ SQL ผิด (compilation error)",
+                        "ตอบคำถามและเลือกตัวแปรได้ถูกต้องและครบถ้วน",
+                        ]
+                    selected_option = st.selectbox("Please give us feedback!", feedback_options, key=message['turn_id'])
+                    if st.button("Submit", key= "button_" + message['turn_id']):
+                        if selected_option != '...':
+                            csv_file = f"data/feedback.csv"
+                            file_exists = os.path.isfile(csv_file)
+                            if not file_exists:
+                                with open(csv_file, mode='a', newline='') as file:
+                                    writer = csv.writer(file)
+                                    writer.writerow(['username','chat_id','turn_id','feedback_text'])
+                            with open(csv_file, mode='a', newline='') as file:
+                                writer = csv.writer(file)
+                                writer.writerow([st.session_state.username, st.session_state.chat_id, message['turn_id'], selected_option,])
+                            st.success("Thanks! Your valuable feedback is updated in the database.")
         else:
             with st.chat_message(message["role"], avatar = user_image):
                 st.markdown(message["content"])
-    
-
-
+                
     # Check if there's a user input prompt
     if prompt := st.chat_input(placeholder="Kindly input your query or command for prompt assistance..."):
         # Display user input in the chat
@@ -205,14 +237,13 @@ if st.session_state["authentication_status"]:
                     raw_input = response_dict['raw_input']
                     raw_output = response_dict['raw_output']
                     engine = response_dict['engine']
-
                 elif context_radio == 'Datacube':
                     response_dict = get_response_2(prompt, context = st.session_state.context)
                     response = response_dict['response']
                     raw_input = response_dict['raw_input']
                     raw_output = response_dict['raw_output']
                     engine = response_dict['engine']
-
+                    
                 full_response = ""
                 # Simulate streaming the response with a slight delay
                 for chunk in response.split("\n"):
@@ -244,46 +275,37 @@ if st.session_state["authentication_status"]:
 
             st.rerun()
 
-    # Check if there are messages in the chat history and if the number of messages is even
-    if st.session_state.messages and len(st.session_state.messages) % 2 == 0:
-        # st.cache_data.clear()
-        # st.cache_resource.clear()
-        
-        # Display a feedback widget for the user to provide feedback
-        
-        try:    
-            feedback = streamlit_feedback(
-                feedback_type="faces",
-                optional_text_label="[Optional] Please provide an explanation",
-                key = st.session_state.turn_id
-            )
-            # print(feedback)
+    # # Check if there are messages in the chat history and if the number of messages is even
+    # if st.session_state.messages and len(st.session_state.messages) % 2 == 0:        
+    #     # Display a feedback widget for the user to provide feedback
+    #     try:    
+    #         feedback = streamlit_feedback(
+    #             feedback_type="faces",
+    #             optional_text_label="[Optional] Please provide an explanation",
+    #             key = st.session_state.turn_id
+    #         )
 
-            # Get the current time
-            current_time = datetime.datetime.now().strftime("%H:%M:%S")
+    #         # Get the current time
+    #         current_time = datetime.datetime.now().strftime("%H:%M:%S")
             
-            if feedback:
-                # Extract the feedback score and text
-                score = feedback['score']
-                text = feedback['text']
-                
-                # Create a new DataFrame with the feedback
-                # df = pd.DataFrame({"turn_id": [st.session_state.turn_id], "score": [score], "user_text": [st.session_state.messages[-2]['content']],"generative_text": [st.session_state.messages[-1]['content']],"feedback_text": [text], "created_on": [created_on]})
-                # print(df)
-                
-                # Display a toast message to confirm that the feedback is updated in the database
-                st.toast("Thanks! Your valuable feedback is updated in the database.")
+    #         if feedback:
+    #             # Extract the feedback score and text
+    #             score = feedback['score']
+    #             text = feedback['text']
 
-                csv_file = f"data/feedback.csv"
-                file_exists = os.path.isfile(csv_file)
-                if not file_exists:
-                    with open(csv_file, mode='a', newline='') as file:
-                        writer = csv.writer(file)
-                        writer.writerow(['username','chat_id','turn_id','score','feedback_text'])
-                with open(csv_file, mode='a', newline='') as file:
-                    writer = csv.writer(file)
-                    current_time = str(datetime.datetime.now())
-                    writer.writerow([st.session_state.username, st.session_state.chat_id, st.session_state.turn_id, score, text])
-        except:
-            pass
+    #             # Display a toast message to confirm that the feedback is updated in the database
+    #             st.toast("Thanks! Your valuable feedback is updated in the database.")
+
+    #             csv_file = f"data/feedback.csv"
+    #             file_exists = os.path.isfile(csv_file)
+    #             if not file_exists:
+    #                 with open(csv_file, mode='a', newline='') as file:
+    #                     writer = csv.writer(file)
+    #                     writer.writerow(['username','chat_id','turn_id','score','feedback_text'])
+    #             with open(csv_file, mode='a', newline='') as file:
+    #                 writer = csv.writer(file)
+    #                 current_time = str(datetime.datetime.now())
+    #                 writer.writerow([st.session_state.username, st.session_state.chat_id, st.session_state.turn_id, score, text])
+    #     except:
+    #         pass
 
