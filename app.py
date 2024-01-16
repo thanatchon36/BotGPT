@@ -182,37 +182,60 @@ if st.session_state["authentication_status"]:
         if message["role"] == "assistant":
             with st.chat_message(message["role"], avatar = bot_image_2):
                 st.markdown(message["content"])
-                col1, col2, col3 = st.columns(3)
-                with col3:
-                    if context_radio == 'ข้อมูลประกาศ':
-                        feedback_options = ["...", 
-                        "ประกาศที่เลือกมาไม่ตรงคำถาม",
-                        "ประกาศที่เลือกมาตรงคำถามแค่บางส่วน แต่ไม่สามารถตอบคำถามได้ทั้งหมด",
-                        "ประกาศที่เลือกมาตรงคำถามแต่คำตอบไม่ครบถ้วน",
-                        "ประกาศที่เลือกมาตรงคำถามแต่คำตอบให้ข้อมูลที่ผิด",
-                        "ตอบคำถามและเลือกประกาศได้ถูกต้องและครบถ้วน",
-                        ]
-                    elif context_radio == 'Datacube':
-                        feedback_options = ["...", 
-                        "ตัวแปรที่เลือกมาไม่ตรงคำถาม",
-                        "ตัวแปรที่เลือกมาตรงคำถามแค่บางส่วน แต่ไม่สามารถตอบคำถามได้ทั้งหมด",
-                        "ตัวแปรที่เลือกมาตรงคำถามแต่คำตอบ (SQL) ดึงข้อมูลไม่ครบถ้วน",
-                        "ตัวแปรที่เลือกมาตรงคำถามแต่คำตอบ SQL ผิด (compilation error)",
-                        "ตอบคำถามและเลือกตัวแปรได้ถูกต้องและครบถ้วน",
-                        ]
-                    selected_option = st.selectbox("Please give us feedback!", feedback_options, key=message['turn_id'])
-                    if st.button("Submit", key= "button_" + message['turn_id']):
-                        if selected_option != '...':
-                            csv_file = f"data/feedback.csv"
-                            file_exists = os.path.isfile(csv_file)
-                            if not file_exists:
-                                with open(csv_file, mode='a', newline='') as file:
-                                    writer = csv.writer(file)
-                                    writer.writerow(['username','chat_id','turn_id','feedback_text'])
+                col1, col2, col3, col4, col5= st.columns(5)
+                with col5:
+                    feedback_options = ["...",
+                                        "😄", 
+                                        "🙂",
+                                        "😐",
+                                        "🙁",
+                                        ]
+                    feedback_radio = st.radio(
+                                        "Please give us feedback!",
+                                        feedback_options,
+                                        key='radio' + message['turn_id'],
+                                    )
+                    if feedback_radio != '...':
+                        csv_file = f"data/feedback.csv"
+                        file_exists = os.path.isfile(csv_file)
+                        if not file_exists:
                             with open(csv_file, mode='a', newline='') as file:
                                 writer = csv.writer(file)
-                                writer.writerow([st.session_state.username, st.session_state.chat_id, message['turn_id'], selected_option,])
-                            st.success("Thanks! Your valuable feedback is updated in the database.")
+                                writer.writerow(['username','chat_id','turn_id','feedback_text'])
+                        with open(csv_file, mode='a', newline='') as file:
+                            writer = csv.writer(file)
+                            writer.writerow([st.session_state.username, st.session_state.chat_id, message['turn_id'], feedback_radio,])
+                        st.toast("Thanks! Your valuable feedback is updated in the database.")
+                #     if context_radio == 'ข้อมูลประกาศ':
+                #         feedback_options = ["...", 
+                #         "ประกาศที่เลือกมาไม่ตรงคำถาม",
+                #         "ประกาศที่เลือกมาตรงคำถามแค่บางส่วน แต่ไม่สามารถตอบคำถามได้ทั้งหมด",
+                #         "ประกาศที่เลือกมาตรงคำถามแต่คำตอบไม่ครบถ้วน",
+                #         "ประกาศที่เลือกมาตรงคำถามแต่คำตอบให้ข้อมูลที่ผิด",
+                #         "ตอบคำถามและเลือกประกาศได้ถูกต้องและครบถ้วน",
+                #         ]
+                #     elif context_radio == 'Datacube':
+                #         feedback_options = ["...", 
+                #         "ตัวแปรที่เลือกมาไม่ตรงคำถาม",
+                #         "ตัวแปรที่เลือกมาตรงคำถามแค่บางส่วน แต่ไม่สามารถตอบคำถามได้ทั้งหมด",
+                #         "ตัวแปรที่เลือกมาตรงคำถามแต่คำตอบ (SQL) ดึงข้อมูลไม่ครบถ้วน",
+                #         "ตัวแปรที่เลือกมาตรงคำถามแต่คำตอบ SQL ผิด (compilation error)",
+                #         "ตอบคำถามและเลือกตัวแปรได้ถูกต้องและครบถ้วน",
+                #         ]
+                    # selected_option = st.selectbox("Please give us feedback!", feedback_options, key='selected_option_1_' + message['turn_id'])
+                    # selected_option_2 = st.selectbox("Please give us your satisfactor!", feedback_options, key='selected_option_2_' + message['turn_id'])
+                    # if st.button("Submit", key= "button_" + message['turn_id']):
+                    #     if selected_option != '...':
+                    #         csv_file = f"data/feedback.csv"
+                    #         file_exists = os.path.isfile(csv_file)
+                    #         if not file_exists:
+                    #             with open(csv_file, mode='a', newline='') as file:
+                    #                 writer = csv.writer(file)
+                    #                 writer.writerow(['username','chat_id','turn_id','feedback_text'])
+                    #         with open(csv_file, mode='a', newline='') as file:
+                    #             writer = csv.writer(file)
+                    #             writer.writerow([st.session_state.username, st.session_state.chat_id, message['turn_id'], selected_option,])
+                    #         st.success("Thanks! Your valuable feedback is updated in the database.")
         else:
             with st.chat_message(message["role"], avatar = user_image):
                 st.markdown(message["content"])
