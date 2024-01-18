@@ -87,6 +87,8 @@ if st.session_state["authentication_status"]:
             "Context:",
             ["ข้อมูลประกาศ", "Datacube"],
         )
+
+        dev_checkbox = st.checkbox('Development')
         
         csv_file = f"data/{st.session_state.username}.csv"
         file_exists = os.path.isfile(csv_file)
@@ -123,8 +125,10 @@ if st.session_state["authentication_status"]:
                                 fil_hist_df = full_hist_df.copy()
                                 fil_hist_df = reset(fil_hist_df[fil_hist_df['chat_id'] == row['chat_id']])
                                 for index_2, row_2 in fil_hist_df.iterrows(): 
-                                    st.session_state.messages.append({"role": "user", "content": row_2['user_text']})
-                                    st.session_state.messages.append({"role": "assistant", "content": row_2['generative_text'], "chat_id": row_2['chat_id'], "turn_id":  row_2['turn_id']})
+                                    st.session_state.messages.append({"role": "user", "content": row_2['user_text'], "raw_content": row_2['raw_input']})
+                                    st.session_state.messages.append({"role": "assistant", "content": row_2['generative_text'], "chat_id": row_2['chat_id'], "turn_id":  row_2['turn_id'],
+                                                                      "raw_content": row_2['raw_output'],
+                                                                      })
 
                                     st.session_state.context.append({"role": "user", "content": row_2['raw_input']})
                                     st.session_state.context.append({"role": "system", "content": row_2['raw_output']})
@@ -155,8 +159,6 @@ if st.session_state["authentication_status"]:
 
         authenticator.logout(f"Logout ({st.session_state['username']})", 'main', key='unique_key')
 
-
-
     with st.chat_message("assistant", avatar = bot_image_2):
         # Create an empty message placeholder
         mp = st.empty()
@@ -181,187 +183,127 @@ if st.session_state["authentication_status"]:
     for message in st.session_state.messages:
         if message["role"] == "assistant":
             with st.chat_message(message["role"], avatar = bot_image_2):
-                st.markdown(message["content"])
-                col1, col2 = st.columns(2)
-                with col1:
-                    feedback_options = ["...",
-                                        "😄", 
-                                        "🙂",
-                                        "😐",
-                                        "🙁",
-                                        ]
-                    feedback_radio_1 = st.radio(
-                                        "Please give us feedback!",
-                                        feedback_options,
-                                        key='radio_2_' + message['turn_id'],
-                                    )
-                    if feedback_radio_1 != '...':
-                        csv_file = f"data/feedback.csv"
-                        file_exists = os.path.isfile(csv_file)
-                        if not file_exists:
+                if dev_checkbox:
+                    st.markdown(message["raw_content"])
+                else:
+                    st.markdown(message["content"])
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        feedback_options = ["...",
+                                            "😄", 
+                                            "🙂",
+                                            "😐",
+                                            "🙁",
+                                            ]
+                        feedback_radio_1 = st.radio(
+                                            "Please give us feedback!",
+                                            feedback_options,
+                                            key='radio_2_' + message['turn_id'],
+                                        )
+                        if feedback_radio_1 != '...':
+                            csv_file = f"data/feedback.csv"
+                            file_exists = os.path.isfile(csv_file)
+                            if not file_exists:
+                                with open(csv_file, mode='a', newline='') as file:
+                                    writer = csv.writer(file)
+                                    writer.writerow(['username','chat_id','turn_id','feedback_text'])
                             with open(csv_file, mode='a', newline='') as file:
                                 writer = csv.writer(file)
-                                writer.writerow(['username','chat_id','turn_id','feedback_text'])
-                        with open(csv_file, mode='a', newline='') as file:
-                            writer = csv.writer(file)
-                            writer.writerow([st.session_state.username, st.session_state.chat_id, message['turn_id'], feedback_radio_1,])
-                        st.success("Thanks! Your valuable feedback is updated in the database.")
-                with col2:
-                    if context_radio == 'ข้อมูลประกาศ':
-                        feedback_options = ["...",
-                                            "ประกาศไม่ตรงคำถาม",
-                                            "ประกาศตรงคำถามบางส่วน ไม่สามารถตอบคำถามได้ทั้งหมด",
-                                            "ประกาศตรงคำถาม คำตอบไม่ครบถ้วน",
-                                            "ประกาศตรงคำถาม คำตอบให้ข้อมูลผิด",
-                                            "ตอบคำถามและเลือกประกาศถูกต้องและครบถ้วน"]
-                    elif context_radio == 'Datacube':
-                        feedback_options = ["...",
-                                            "ตัวแปรไม่ตรงคำถาม",
-                                            "ตัวแปรตรงคำถามบางส่วน ไม่สามารถตอบคำถามได้ทั้งหมด",
-                                            "ตัวแปรตรงคำถาม คำตอบ SQL ดึงข้อมูลไม่ครบถ้วน",
-                                            "ตัวแปรตรงคำถาม คำตอบ SQL ผิด (compilation error)",
-                                            "ตอบคำถามและเลือกตัวแปรถูกต้องและครบถ้วน"]
-                    feedback_radio_2 = st.radio(
-                                        "",
-                                        feedback_options,
-                                        key='radio_1_' + message['turn_id'],
-                                    )
-                    if feedback_radio_2 != '...':
-                        csv_file = f"data/feedback.csv"
-                        file_exists = os.path.isfile(csv_file)
-                        if not file_exists:
+                                writer.writerow([st.session_state.username, st.session_state.chat_id, message['turn_id'], feedback_radio_1,])
+                            st.success("Thanks! Your valuable feedback is updated in the database.")
+                    with col2:
+                        if context_radio == 'ข้อมูลประกาศ':
+                            feedback_options = ["...",
+                                                "ประกาศไม่ตรงคำถาม",
+                                                "ประกาศตรงคำถามบางส่วน ไม่สามารถตอบคำถามได้ทั้งหมด",
+                                                "ประกาศตรงคำถาม คำตอบไม่ครบถ้วน",
+                                                "ประกาศตรงคำถาม คำตอบให้ข้อมูลผิด",
+                                                "ตอบคำถามและเลือกประกาศถูกต้องและครบถ้วน"]
+                        elif context_radio == 'Datacube':
+                            feedback_options = ["...",
+                                                "ตัวแปรไม่ตรงคำถาม",
+                                                "ตัวแปรตรงคำถามบางส่วน ไม่สามารถตอบคำถามได้ทั้งหมด",
+                                                "ตัวแปรตรงคำถาม คำตอบ SQL ดึงข้อมูลไม่ครบถ้วน",
+                                                "ตัวแปรตรงคำถาม คำตอบ SQL ผิด (compilation error)",
+                                                "ตอบคำถามและเลือกตัวแปรถูกต้องและครบถ้วน"]
+                        feedback_radio_2 = st.radio(
+                                            "",
+                                            feedback_options,
+                                            key='radio_1_' + message['turn_id'],
+                                        )
+                        if feedback_radio_2 != '...':
+                            csv_file = f"data/feedback.csv"
+                            file_exists = os.path.isfile(csv_file)
+                            if not file_exists:
+                                with open(csv_file, mode='a', newline='') as file:
+                                    writer = csv.writer(file)
+                                    writer.writerow(['username','chat_id','turn_id','feedback_text'])
                             with open(csv_file, mode='a', newline='') as file:
                                 writer = csv.writer(file)
-                                writer.writerow(['username','chat_id','turn_id','feedback_text'])
-                        with open(csv_file, mode='a', newline='') as file:
-                            writer = csv.writer(file)
-                            writer.writerow([st.session_state.username, st.session_state.chat_id, message['turn_id'], feedback_radio_2,])
-                        st.success("Thanks! Your valuable feedback is updated in the database.")
-
-                        # st.toast("Thanks! Your valuable feedback is updated in the database.")
-                #     if context_radio == 'ข้อมูลประกาศ':
-                #         feedback_options = ["...", 
-                #         "ประกาศที่เลือกมาไม่ตรงคำถาม",
-                #         "ประกาศที่เลือกมาตรงคำถามแค่บางส่วน แต่ไม่สามารถตอบคำถามได้ทั้งหมด",
-                #         "ประกาศที่เลือกมาตรงคำถามแต่คำตอบไม่ครบถ้วน",
-                #         "ประกาศที่เลือกมาตรงคำถามแต่คำตอบให้ข้อมูลที่ผิด",
-                #         "ตอบคำถามและเลือกประกาศได้ถูกต้องและครบถ้วน",
-                #         ]
-                #     elif context_radio == 'Datacube':
-                #         feedback_options = ["...", 
-                #         "ตัวแปรที่เลือกมาไม่ตรงคำถาม",
-                #         "ตัวแปรที่เลือกมาตรงคำถามแค่บางส่วน แต่ไม่สามารถตอบคำถามได้ทั้งหมด",
-                #         "ตัวแปรที่เลือกมาตรงคำถามแต่คำตอบ (SQL) ดึงข้อมูลไม่ครบถ้วน",
-                #         "ตัวแปรที่เลือกมาตรงคำถามแต่คำตอบ SQL ผิด (compilation error)",
-                #         "ตอบคำถามและเลือกตัวแปรได้ถูกต้องและครบถ้วน",
-                #         ]
-                    # selected_option = st.selectbox("Please give us feedback!", feedback_options, key='selected_option_1_' + message['turn_id'])
-                    # selected_option_2 = st.selectbox("Please give us your satisfactor!", feedback_options, key='selected_option_2_' + message['turn_id'])
-                    # if st.button("Submit", key= "button_" + message['turn_id']):
-                    #     if selected_option != '...':
-                    #         csv_file = f"data/feedback.csv"
-                    #         file_exists = os.path.isfile(csv_file)
-                    #         if not file_exists:
-                    #             with open(csv_file, mode='a', newline='') as file:
-                    #                 writer = csv.writer(file)
-                    #                 writer.writerow(['username','chat_id','turn_id','feedback_text'])
-                    #         with open(csv_file, mode='a', newline='') as file:
-                    #             writer = csv.writer(file)
-                    #             writer.writerow([st.session_state.username, st.session_state.chat_id, message['turn_id'], selected_option,])
-                    #         st.success("Thanks! Your valuable feedback is updated in the database.")
+                                writer.writerow([st.session_state.username, st.session_state.chat_id, message['turn_id'], feedback_radio_2,])
+                            st.success("Thanks! Your valuable feedback is updated in the database.")
         else:
             with st.chat_message(message["role"], avatar = user_image):
-                st.markdown(message["content"])
+                if dev_checkbox == False:
+                    st.markdown(message["content"])
+                else:
+                    st.markdown(message["raw_content"])
                 
     # Check if there's a user input prompt
-    if prompt := st.chat_input(placeholder="Kindly input your query or command for prompt assistance..."):
-        # Display user input in the chat
-        st.chat_message("user", avatar = user_image).write(prompt)
+    if dev_checkbox == False:
+        if prompt := st.chat_input(placeholder="Kindly input your query or command for prompt assistance..."):
+            # Display user input in the chat
+            st.chat_message("user", avatar = user_image).write(prompt)
 
-        # Add user message to the chat history
-        st.session_state.messages.append({"role": "user", "content": prompt})
+            # Add user message to the chat history
+            st.session_state.messages.append({"role": "user", "content": prompt})
 
-        # Create a chat message for the assistant
-        with st.chat_message("assistant", avatar = bot_image_2):
-            full_response = ""  # Initialize an empty string to store the full response
-            message_placeholder = st.empty()  # Create an empty placeholder for displaying messages
- 
-            with st.spinner('Thinking...'):
-                if context_radio == 'ข้อมูลประกาศ':
-                    response_dict = get_response(prompt, context = st.session_state.context)
-                    response = response_dict['response']
-                    raw_input = response_dict['raw_input']
-                    raw_output = response_dict['raw_output']
-                    engine = response_dict['engine']
-                elif context_radio == 'Datacube':
-                    response_dict = get_response_2(prompt, context = st.session_state.context)
-                    response = response_dict['response']
-                    raw_input = response_dict['raw_input']
-                    raw_output = response_dict['raw_output']
-                    engine = response_dict['engine']
-                    
-                full_response = ""
-                # Simulate streaming the response with a slight delay
-                for chunk in response.split("\n"):
-                    # Add a small delay to simulate typing
-                    time.sleep(0.05)
-                    # Add a blinking cursor to simulate typing
-                    message_placeholder.markdown(full_response + "▌")
-                    full_response += chunk + "  \n"  # Add double space escape sequence for line break
-                    message_placeholder.markdown(full_response)
+            # Create a chat message for the assistant
+            with st.chat_message("assistant", avatar = bot_image_2):
+                full_response = ""  # Initialize an empty string to store the full response
+                message_placeholder = st.empty()  # Create an empty placeholder for displaying messages
 
-            # csv_file = f"data/{st.session_state['username']}.csv"
-            csv_file = f"data/{st.session_state.username}.csv"
-            file_exists = os.path.isfile(csv_file)
-            if not file_exists:
-                with open(csv_file, mode='a', newline='') as file:
+                with st.spinner('Thinking...'):
+                    if context_radio == 'ข้อมูลประกาศ':
+                        response_dict = get_response(prompt, context = st.session_state.context)
+                        response = response_dict['response']
+                        raw_input = response_dict['raw_input']
+                        raw_output = response_dict['raw_output']
+                        engine = response_dict['engine']
+                    elif context_radio == 'Datacube':
+                        response_dict = get_response_2(prompt, context = st.session_state.context)
+                        response = response_dict['response']
+                        raw_input = response_dict['raw_input']
+                        raw_output = response_dict['raw_output']
+                        engine = response_dict['engine']
+                        
+                    full_response = ""
+                    # Simulate streaming the response with a slight delay
+                    for chunk in response.split("\n"):
+                        # Add a small delay to simulate typing
+                        time.sleep(0.05)
+                        # Add a blinking cursor to simulate typing
+                        message_placeholder.markdown(full_response + "▌")
+                        full_response += chunk + "  \n"  # Add double space escape sequence for line break
+                        message_placeholder.markdown(full_response)
+
+                # csv_file = f"data/{st.session_state['username']}.csv"
+                csv_file = f"data/{st.session_state.username}.csv"
+                file_exists = os.path.isfile(csv_file)
+                if not file_exists:
+                    with open(csv_file, mode='a', newline='') as file:
+                        writer = csv.writer(file)
+                        writer.writerow(['username','chat_id','turn_id','user_text','generative_text','raw_input','raw_output','engine'])
+                with open(csv_file, mode='a', newline='', encoding = 'utf-8') as file:
                     writer = csv.writer(file)
-                    writer.writerow(['username','chat_id','turn_id','user_text','generative_text','raw_input','raw_output','engine'])
-            with open(csv_file, mode='a', newline='', encoding = 'utf-8') as file:
-                writer = csv.writer(file)
-                current_time = str(datetime.datetime.now())
-                st.session_state.turn_id = current_time
-                writer.writerow([st.session_state.username, st.session_state.chat_id, st.session_state.turn_id, prompt, full_response, raw_input, raw_output, engine])
+                    current_time = str(datetime.datetime.now())
+                    st.session_state.turn_id = current_time
+                    writer.writerow([st.session_state.username, st.session_state.chat_id, st.session_state.turn_id, prompt, full_response, raw_input, raw_output, engine])
 
-            # Add the assistant's response to the chat history
-            st.session_state.messages.append({"role": "assistant", "content": full_response, "chat_id": st.session_state.chat_id, "turn_id": st.session_state.turn_id})
+                # Add the assistant's response to the chat history
+                st.session_state.messages.append({"role": "assistant", "content": full_response, "chat_id": st.session_state.chat_id, "turn_id": st.session_state.turn_id})
 
-            st.session_state.context.append({"role": "user", "content": raw_input})
-            st.session_state.context.append({"role": "system", "content": raw_output})
+                st.session_state.context.append({"role": "user", "content": raw_input})
+                st.session_state.context.append({"role": "system", "content": raw_output})
 
-            st.rerun()
-
-    # # Check if there are messages in the chat history and if the number of messages is even
-    # if st.session_state.messages and len(st.session_state.messages) % 2 == 0:        
-    #     # Display a feedback widget for the user to provide feedback
-    #     try:    
-    #         feedback = streamlit_feedback(
-    #             feedback_type="faces",
-    #             optional_text_label="[Optional] Please provide an explanation",
-    #             key = st.session_state.turn_id
-    #         )
-
-    #         # Get the current time
-    #         current_time = datetime.datetime.now().strftime("%H:%M:%S")
-            
-    #         if feedback:
-    #             # Extract the feedback score and text
-    #             score = feedback['score']
-    #             text = feedback['text']
-
-    #             # Display a toast message to confirm that the feedback is updated in the database
-    #             st.toast("Thanks! Your valuable feedback is updated in the database.")
-
-    #             csv_file = f"data/feedback.csv"
-    #             file_exists = os.path.isfile(csv_file)
-    #             if not file_exists:
-    #                 with open(csv_file, mode='a', newline='') as file:
-    #                     writer = csv.writer(file)
-    #                     writer.writerow(['username','chat_id','turn_id','score','feedback_text'])
-    #             with open(csv_file, mode='a', newline='') as file:
-    #                 writer = csv.writer(file)
-    #                 current_time = str(datetime.datetime.now())
-    #                 writer.writerow([st.session_state.username, st.session_state.chat_id, st.session_state.turn_id, score, text])
-    #     except:
-    #         pass
-
+                st.rerun()
