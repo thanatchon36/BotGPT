@@ -12,7 +12,7 @@ from yaml.loader import SafeLoader
 import requests
 
 def get_response(prompt, context = []):
-    api_route = 'botgpt_query_dev'
+    api_route = 'botgpt_query'
     post_params = {'prompt': f"{prompt}",
                    'context': context,
                 }
@@ -20,7 +20,7 @@ def get_response(prompt, context = []):
     return {'response': res.json()['response'], 'raw_input': res.json()['raw_input'], 'raw_output': res.json()['raw_output'], 'engine': res.json()['engine']}
 
 def get_response_2(prompt, context = []):
-    api_route = 'botgpt_query_dev'
+    api_route = 'botgpt_query'
     post_params = {'prompt': f"{prompt}",
                    'context': context,
                 }
