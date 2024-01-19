@@ -265,7 +265,7 @@ if st.session_state["authentication_status"]:
 
                 with st.spinner('Thinking...'):
                     if context_radio == 'ข้อมูลประกาศ':
-                        response_dict = get_response_dev(prompt, context = st.session_state.context)
+                        response_dict = get_response(prompt, context = st.session_state.context)
                         response = response_dict['response']
                         raw_input = response_dict['raw_input']
                         raw_output = response_dict['raw_output']
