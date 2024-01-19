@@ -255,9 +255,6 @@ if st.session_state["authentication_status"]:
             # Display user input in the chat
             st.chat_message("user", avatar = user_image).write(prompt)
 
-            # Add user message to the chat history
-            st.session_state.messages.append({"role": "user", "content": prompt})
-
             # Create a chat message for the assistant
             with st.chat_message("assistant", avatar = bot_image_2):
                 full_response = ""  # Initialize an empty string to store the full response
@@ -301,8 +298,11 @@ if st.session_state["authentication_status"]:
                     writer.writerow([st.session_state.username, st.session_state.chat_id, st.session_state.turn_id, prompt, full_response, raw_input, raw_output, engine])
 
                 # Add the assistant's response to the chat history
-                st.session_state.messages.append({"role": "assistant", "content": full_response, "chat_id": st.session_state.chat_id, "turn_id": st.session_state.turn_id})
-
+                st.session_state.messages.append({"role": "user", "content": prompt, "raw_content": raw_input})
+                st.session_state.messages.append({"role": "assistant", "content": full_response, "chat_id": st.session_state.chat_id, "turn_id":  st.session_state.turn_id,
+                                                    "raw_content": raw_output,
+                                                    })
+                
                 st.session_state.context.append({"role": "user", "content": raw_input})
                 st.session_state.context.append({"role": "system", "content": raw_output})
 
