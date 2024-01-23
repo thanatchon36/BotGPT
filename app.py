@@ -35,7 +35,8 @@ def reset(df):
     return df.reset_index()[cols]
 
 show_chat_history_no = 5
-admin_list = ['thanatcc', 'da']
+admin_list = ['thanatcc', 'da', 'chinnawd']
+da_username_list = ['thanatcc','chinnawd','anaky','bodinc','kawinwil','palakorb','peranutn','pitiyatp','senangma','skunpojt','supachas','wasakory']
 
 st.set_page_config(page_title = 'BotGPT', page_icon = 'fav.png', layout="wide")
 
@@ -87,8 +88,11 @@ if st.session_state["authentication_status"]:
             "Context:",
             ["ข้อมูลประกาศ", "Datacube"],
         )
-
-        dev_checkbox = st.checkbox('Development')
+        
+        if st.session_state.username in da_username_list:
+            dev_checkbox = st.checkbox('Development')
+        else:
+            dev_checkbox = False
         
         csv_file = f"data/{st.session_state.username}.csv"
         file_exists = os.path.isfile(csv_file)
