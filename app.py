@@ -12,23 +12,33 @@ from yaml.loader import SafeLoader
 import requests
 
 def get_response(prompt, context = []):
+    start_time = time.time()
     api_route = 'botgpt_query'
     post_params = {'prompt': f"{prompt}",
                    'context': context,
                 }
     res = requests.post(f'https://pc140032646.bot.or.th/{api_route}', json = post_params, verify="/DA_WORKSPACE/GLOBAL_WS/ssl_cer/WS2B/pc140032646.bot.or.th.pem")
-    return {'response': res.json()['response'], 'raw_input': res.json()['raw_input'], 'raw_output': res.json()['raw_output'], 'engine': res.json()['engine']}
+    execution_time = time.time() - start_time
+    execution_time = round(execution_time, 2)
+    return {'response': res.json()['response'], 'raw_input': res.json()['raw_input'], 'raw_output': res.json()['raw_output'], 'engine': res.json()['engine'], 'frontend_query_time': execution_time}
 
 def get_response_2(prompt, context = []):
+    start_time = time.time()
     api_route = 'botgpt_query'
     post_params = {'prompt': f"{prompt}",
                    'context': context,
                 }
     res = requests.post(f'https://pc140032645.bot.or.th/{api_route}', json = post_params, verify="/DA_WORKSPACE/GLOBAL_WS/ssl_cer/WS2A/pc140032645.bot.or.th.pem")
-    return {'response': res.json()['response'], 'raw_input': res.json()['raw_input'], 'raw_output': res.json()['raw_output'], 'engine': res.json()['engine']}
+    execution_time = time.time() - start_time
+    execution_time = round(execution_time, 2)
+    return {'response': res.json()['response'], 'raw_input': res.json()['raw_input'], 'raw_output': res.json()['raw_output'], 'engine': res.json()['engine'], 'frontend_query_time': execution_time}
 
 def get_response_dev(prompt, context = []):
-    return {'response': 'response', 'raw_input': 'raw_input', 'raw_output': 'raw_output', 'engine': 'engine'}
+    start_time = time.time()
+    time.sleep(3)
+    execution_time = time.time() - start_time
+    execution_time = round(execution_time, 2)
+    return {'response': 'response', 'raw_input': 'raw_input', 'raw_output': 'raw_output', 'engine': 'engine', 'frontend_query_time': execution_time}
 
 def reset(df):
     cols = df.columns
@@ -295,12 +305,14 @@ if st.session_state["authentication_status"]:
                         raw_input = response_dict['raw_input']
                         raw_output = response_dict['raw_output']
                         engine = response_dict['engine']
+                        frontend_query_time = response_dict['frontend_query_time']
                     elif context_radio == 'Datacube':
                         response_dict = get_response_2(prompt, context = st.session_state.context)
                         response = response_dict['response']
                         raw_input = response_dict['raw_input']
                         raw_output = response_dict['raw_output']
                         engine = response_dict['engine']
+                        frontend_query_time = response_dict['frontend_query_time']
                         
                     full_response = ""
                     # Simulate streaming the response with a slight delay
@@ -318,12 +330,12 @@ if st.session_state["authentication_status"]:
                 if not file_exists:
                     with open(csv_file, mode='a', newline='') as file:
                         writer = csv.writer(file)
-                        writer.writerow(['username','chat_id','turn_id','user_text','generative_text','raw_input','raw_output','engine'])
+                        writer.writerow(['username','chat_id','turn_id','user_text','generative_text','raw_input','raw_output','engine','frontend_query_time'])
                 with open(csv_file, mode='a', newline='', encoding = 'utf-8') as file:
                     writer = csv.writer(file)
                     current_time = str(datetime.datetime.now())
                     st.session_state.turn_id = current_time
-                    writer.writerow([st.session_state.username, st.session_state.chat_id, st.session_state.turn_id, prompt, full_response, raw_input, raw_output, engine])
+                    writer.writerow([st.session_state.username, st.session_state.chat_id, st.session_state.turn_id, prompt, full_response, raw_input, raw_output, engine, frontend_query_time])
 
                 # Add the assistant's response to the chat history
                 st.session_state.messages.append({"role": "user", "content": prompt, "raw_content": raw_input})
