@@ -306,6 +306,7 @@ if st.session_state["authentication_status"]:
                         raw_output = response_dict['raw_output']
                         engine = response_dict['engine']
                         frontend_query_time = response_dict['frontend_query_time']
+                        backend_query_time = response_dict['query_time_sec']
                     elif context_radio == 'Datacube':
                         response_dict = get_response_2(prompt, context = st.session_state.context)
                         response = response_dict['response']
@@ -313,6 +314,7 @@ if st.session_state["authentication_status"]:
                         raw_output = response_dict['raw_output']
                         engine = response_dict['engine']
                         frontend_query_time = response_dict['frontend_query_time']
+                        backend_query_time = response_dict['query_time_sec']
                         
                     full_response = ""
                     # Simulate streaming the response with a slight delay
@@ -330,12 +332,12 @@ if st.session_state["authentication_status"]:
                 if not file_exists:
                     with open(csv_file, mode='a', newline='') as file:
                         writer = csv.writer(file)
-                        writer.writerow(['username','chat_id','turn_id','user_text','generative_text','raw_input','raw_output','engine','frontend_query_time'])
+                        writer.writerow(['username','chat_id','turn_id','user_text','generative_text','raw_input','raw_output','engine','frontend_query_time','backend_query_time'])
                 with open(csv_file, mode='a', newline='', encoding = 'utf-8') as file:
                     writer = csv.writer(file)
                     current_time = str(datetime.datetime.now())
                     st.session_state.turn_id = current_time
-                    writer.writerow([st.session_state.username, st.session_state.chat_id, st.session_state.turn_id, prompt, full_response, raw_input, raw_output, engine, frontend_query_time])
+                    writer.writerow([st.session_state.username, st.session_state.chat_id, st.session_state.turn_id, prompt, full_response, raw_input, raw_output, engine, frontend_query_time, backend_query_time])
 
                 # Add the assistant's response to the chat history
                 st.session_state.messages.append({"role": "user", "content": prompt, "raw_content": raw_input})
