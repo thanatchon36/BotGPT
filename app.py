@@ -96,7 +96,7 @@ if st.session_state["authentication_status"]:
 
         context_radio = st.radio(
             "Context:",
-            ["ข้อมูลประกาศ", "Datacube"],
+            ["SQL-Copilot", "ถามตอบ-ประกาศ"],
         )
         
         if st.session_state.username in da_username_list:
@@ -226,13 +226,13 @@ if st.session_state["authentication_status"]:
                                 writer.writerow([st.session_state.username, st.session_state.chat_id, message['turn_id'], feedback_radio_1,])
                             st.success("Thanks! Your valuable feedback is updated in the database.")
                     with col2:
-                        if context_radio == 'ข้อมูลประกาศ':
+                        if context_radio == 'ถามตอบ-ประกาศ':
                             feedback_options = ["...",
                                                 "คำตอบถูกต้องครบถ้วน",
                                                 "คำตอบถูกต้องบางส่วน",
                                                 "คำตอบไม่ถูกต้อง",
                                                 "คำตอบไม่เกี่ยวข้องกับคำถาม"]
-                        elif context_radio == 'Datacube':
+                        elif context_radio == 'SQL-Copilot':
                             feedback_options = ["...",
                                                 "เลือก field ผิด",
                                                 "เลือก field ถูกแต่ไม่ครบถ้วน",
@@ -255,7 +255,7 @@ if st.session_state["authentication_status"]:
                                 writer = csv.writer(file)
                                 writer.writerow([st.session_state.username, st.session_state.chat_id, message['turn_id'], feedback_radio_2,])
                             st.success("Thanks! Your valuable feedback is updated in the database.")
-                    if context_radio == 'ข้อมูลประกาศ':
+                    if context_radio == 'ถามตอบ-ประกาศ':
                         with col3:
                             feedback_options = ["...",
                                                 "ประกาศถูกต้อง",
@@ -299,7 +299,7 @@ if st.session_state["authentication_status"]:
                 message_placeholder = st.empty()  # Create an empty placeholder for displaying messages
 
                 with st.spinner('Thinking...'):
-                    if context_radio == 'ข้อมูลประกาศ':
+                    if context_radio == 'ถามตอบ-ประกาศ':
                         response_dict = get_response(prompt, context = st.session_state.context)
                         response = response_dict['response']
                         raw_input = response_dict['raw_input']
@@ -307,7 +307,7 @@ if st.session_state["authentication_status"]:
                         engine = response_dict['engine']
                         frontend_query_time = response_dict['frontend_query_time']
                         backend_query_time = response_dict['backend_query_time']
-                    elif context_radio == 'Datacube':
+                    elif context_radio == 'SQL-Copilot':
                         response_dict = get_response_2(prompt, context = st.session_state.context)
                         response = response_dict['response']
                         raw_input = response_dict['raw_input']
