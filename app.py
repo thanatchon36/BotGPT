@@ -60,7 +60,7 @@ def reset(df):
 
 show_chat_history_no = 5
 admin_list = ['thanatcc', 'da', 'chinnawd']
-da_username_list = ['thanatcc','chinnawd','anaky','bodinc','kawinwil','palakorb','peranutn','pitiyatp','senangma','skunpojt','supachas','wasakory','kriangks','nontawic','bodinc','chalisak','wanpracc','suwatchc']
+da_username_list = ['thanatcc','chinnawd','anaky','bodinc','kawinwil','palakorb','peranutn','pitiyatp','senangma','skunpojt','supachas','wasakory','kriangks','nontawic','bodinc','chalisak','wanpracc','suwatchc','bovonvij']
 
 st.set_page_config(page_title = 'BotGPT', page_icon = 'fav.png', layout="wide")
 
