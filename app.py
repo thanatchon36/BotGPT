@@ -115,10 +115,10 @@ if st.session_state["authentication_status"]:
         
         if st.session_state.username in da_username_list:
             dev_checkbox = st.checkbox('Development')
-            eng_checkbox = st.checkbox('English Translation')
+            eng_button = st.button('English Translation')
         else:
             dev_checkbox = False
-            eng_checkbox = False
+            eng_button = False
         
         csv_file = f"data/{st.session_state.username}.csv"
         file_exists = os.path.isfile(csv_file)
@@ -215,11 +215,12 @@ if st.session_state["authentication_status"]:
             with st.chat_message(message["role"], avatar = bot_image_2):
                 if dev_checkbox:
                     st.markdown(message["raw_content"])
-                elif eng_checkbox:
+                elif eng_button:
                     full_response = ""  # Initialize an empty string to store the full response
                     message_placeholder = st.empty()  # Create an empty placeholder for displaying messages
                     with st.spinner('Translating...'):
                         response = get_response_eng_translate(message["content"])['response']
+                        # response = "test test test"
                         full_response = ""
                         # Simulate streaming the response with a slight delay
                         for chunk in response.split("\n"):
@@ -314,11 +315,12 @@ if st.session_state["authentication_status"]:
             with st.chat_message(message["role"], avatar = user_image):
                 if dev_checkbox:
                     st.markdown(message["raw_content"])
-                elif eng_checkbox:
+                elif eng_button:
                     full_response = ""  # Initialize an empty string to store the full response
                     message_placeholder = st.empty()  # Create an empty placeholder for displaying messages
                     with st.spinner('Translating...'):
                         response = get_response_eng_translate(message["content"])['response']
+                        # response = "test test test"
                         full_response = ""
                         # Simulate streaming the response with a slight delay
                         for chunk in response.split("\n"):
