@@ -33,6 +33,20 @@ def get_response_2(prompt, context = []):
     execution_time = round(execution_time, 2)
     return {'response': res.json()['response'], 'raw_input': res.json()['raw_input'], 'raw_output': res.json()['raw_output'], 'engine': res.json()['engine'], 'frontend_query_time': execution_time, 'backend_query_time': res.json()['query_time_sec']}
 
+def get_response_eng_translate(input_text):
+    start_time = time.time()
+
+    api_route = 'eng_translate'
+    post_params = {'input': input_text,
+                }
+    res = requests.post(f'https://pc140032645.bot.or.th/{api_route}', 
+                        json = post_params, 
+                        verify = '/DA_WORKSPACE/GLOBAL_WS/ssl_cer/WS2A/pc140032645.bot.or.th.pem')
+        
+    execution_time = time.time() - start_time
+    execution_time = round(execution_time, 2)
+    return {'response': res.json()['response'], 'backend_query_time': execution_time}
+
 def get_response_dev(prompt, context = []):
     start_time = time.time()
     time.sleep(3)
@@ -46,7 +60,7 @@ def reset(df):
 
 show_chat_history_no = 5
 admin_list = ['thanatcc', 'da', 'chinnawd']
-da_username_list = ['thanatcc','chinnawd','anaky','bodinc','kawinwil','palakorb','peranutn','pitiyatp','senangma','skunpojt','supachas','wasakory','kriangks','nontawic','bodinc','chalisak']
+da_username_list = ['thanatcc','chinnawd','anaky','bodinc','kawinwil','palakorb','peranutn','pitiyatp','senangma','skunpojt','supachas','wasakory','kriangks','nontawic','bodinc','chalisak','wanpracc','suwatchc']
 
 st.set_page_config(page_title = 'BotGPT', page_icon = 'fav.png', layout="wide")
 
@@ -101,8 +115,10 @@ if st.session_state["authentication_status"]:
         
         if st.session_state.username in da_username_list:
             dev_checkbox = st.checkbox('Development')
+            eng_checkbox = st.checkbox('English Translation')
         else:
             dev_checkbox = False
+            eng_checkbox = False
         
         csv_file = f"data/{st.session_state.username}.csv"
         file_exists = os.path.isfile(csv_file)
@@ -199,6 +215,20 @@ if st.session_state["authentication_status"]:
             with st.chat_message(message["role"], avatar = bot_image_2):
                 if dev_checkbox:
                     st.markdown(message["raw_content"])
+                elif eng_checkbox:
+                    full_response = ""  # Initialize an empty string to store the full response
+                    message_placeholder = st.empty()  # Create an empty placeholder for displaying messages
+                    with st.spinner('Translating...'):
+                        response = get_response_eng_translate(message["content"])['response']
+                        full_response = ""
+                        # Simulate streaming the response with a slight delay
+                        for chunk in response.split("\n"):
+                            # Add a small delay to simulate typing
+                            time.sleep(0.05)
+                            # Add a blinking cursor to simulate typing
+                            message_placeholder.markdown(full_response + "▌")
+                            full_response += chunk + "  \n"  # Add double space escape sequence for line break
+                            message_placeholder.markdown(full_response)
                 else:
                     st.markdown(message["content"])
                     col1, col2, col3 = st.columns(3)
@@ -282,11 +312,25 @@ if st.session_state["authentication_status"]:
                                 
         else:
             with st.chat_message(message["role"], avatar = user_image):
-                if dev_checkbox == False:
-                    st.markdown(message["content"])
-                else:
+                if dev_checkbox:
                     st.markdown(message["raw_content"])
-                
+                elif eng_checkbox:
+                    full_response = ""  # Initialize an empty string to store the full response
+                    message_placeholder = st.empty()  # Create an empty placeholder for displaying messages
+                    with st.spinner('Translating...'):
+                        response = get_response_eng_translate(message["content"])['response']
+                        full_response = ""
+                        # Simulate streaming the response with a slight delay
+                        for chunk in response.split("\n"):
+                            # Add a small delay to simulate typing
+                            time.sleep(0.05)
+                            # Add a blinking cursor to simulate typing
+                            message_placeholder.markdown(full_response + "▌")
+                            full_response += chunk + "  \n"  # Add double space escape sequence for line break
+                            message_placeholder.markdown(full_response)
+                else:
+                    st.markdown(message["content"])
+
     # Check if there's a user input prompt
     if dev_checkbox == False:
         if prompt := st.chat_input(placeholder="Kindly input your query or command for prompt assistance..."):
