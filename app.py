@@ -110,7 +110,7 @@ if st.session_state["authentication_status"]:
 
         context_radio = st.radio(
             "Context:",
-            ["SQL-Copilot", "ถามตอบ-ประกาศ"],
+            ["SQL-Copilot", "BOTGPT (ถามตอบ-ประกาศ)"],
         )
         
         if st.session_state.username in da_username_list:
@@ -196,7 +196,7 @@ if st.session_state["authentication_status"]:
         sl = mp.container()
         # Add a Markdown message describing the app
         sl.markdown(f"""
-            Hi {st.session_state.name}! I am BotGPT, ready to provide assistance.
+            Hi {st.session_state.name}! I am BotGPT, ready to provide assistance. 100,000,000.00
         """)
 
         existing_df = pd.DataFrame()
@@ -257,7 +257,7 @@ if st.session_state["authentication_status"]:
                                 writer.writerow([st.session_state.username, st.session_state.chat_id, message['turn_id'], feedback_radio_1,])
                             st.success("Thanks! Your valuable feedback is updated in the database.")
                     with col2:
-                        if context_radio == 'ถามตอบ-ประกาศ':
+                        if context_radio == 'BOTGPT (ถามตอบ-ประกาศ)':
                             feedback_options = ["...",
                                                 "คำตอบถูกต้องครบถ้วน",
                                                 "คำตอบถูกต้องบางส่วน",
@@ -286,7 +286,7 @@ if st.session_state["authentication_status"]:
                                 writer = csv.writer(file)
                                 writer.writerow([st.session_state.username, st.session_state.chat_id, message['turn_id'], feedback_radio_2,])
                             st.success("Thanks! Your valuable feedback is updated in the database.")
-                    if context_radio == 'ถามตอบ-ประกาศ':
+                    if context_radio == 'BOTGPT (ถามตอบ-ประกาศ)':
                         with col3:
                             feedback_options = ["...",
                                                 "ประกาศถูกต้อง",
@@ -345,7 +345,7 @@ if st.session_state["authentication_status"]:
                 message_placeholder = st.empty()  # Create an empty placeholder for displaying messages
 
                 with st.spinner('Thinking...'):
-                    if context_radio == 'ถามตอบ-ประกาศ':
+                    if context_radio == 'BOTGPT (ถามตอบ-ประกาศ)':
                         response_dict = get_response(prompt, context = st.session_state.context)
                         response = response_dict['response']
                         raw_input = response_dict['raw_input']
