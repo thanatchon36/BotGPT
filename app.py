@@ -196,7 +196,7 @@ if st.session_state["authentication_status"]:
         sl = mp.container()
         # Add a Markdown message describing the app
         sl.markdown(f"""
-            Hi {st.session_state.name}! I am BotGPT, ready to provide assistance. 100,000,000.00
+            Hi {st.session_state.name}! I am BotGPT, ready to provide assistance.
         """)
 
         existing_df = pd.DataFrame()
