@@ -110,7 +110,7 @@ if st.session_state["authentication_status"]:
 
         context_radio = st.radio(
             "Context:",
-            ["SQL-Copilot", "BOTGPT (ถามตอบ-ประกาศ)"],
+            ["BOTGPT (ถามตอบ-ประกาศ)", "SQL-Copilot"],
         )
         
         if st.session_state.username in da_username_list:
